@@ -1,22 +1,25 @@
-print("****************************************************************")
-print("Calculate the average of your last 6-months electricity bills")
-print("****************************************************************")
+number_of_months = 6
+title = "Calculate the average of your last " + str(number_of_months) + "-months electricity bills"
+print("*" * len(title))
+print(title)
+print("*" * len(title))
 
+bills = []
+bill_number = 1
+while bill_number <= number_of_months:
+    input_bill = input("Enter Bill #{}: ".format(bill_number))
+    try:
+        bills.append(float(input_bill))
+        bill_number += 1
+    except ValueError:
+        print("Please enter a numeric value")
 
-bill1 = input("Enter Bill #1: ")
-bill2 = input("Enter Bill #2: ")
-bill3 = input("Enter Bill #3: ")
-bill4 = input("Enter Bill #4: ")
-bill5 = input("Enter Bill #5: ")
-bill6 = input("Enter Bill #6: ")
+print("Your electricity bills for the past " + str(number_of_months) + " months are:")
 
-average = (float(bill1) + float(bill2) + float(bill3) + float(bill4) + float(bill5) + float(bill6)) / 6
+bill_str_list = []
+for bill in bills:
+    bill_str_list.append("$" + str(bill))
+print(*bill_str_list, sep=", ")
 
-print("Your electricity bills for the past 6 months are:")
-print("$"+str(bill1)+", " +
-      "$"+str(bill2)+", " +
-      "$"+str(bill3)+", " +
-      "$"+str(bill4)+", " +
-      "$"+str(bill5)+", " +
-      "$"+str(bill6))
+average = sum(bills) / number_of_months
 print("The average of your electricity bill is ${:.2f}".format(average))
