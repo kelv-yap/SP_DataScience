@@ -7,9 +7,9 @@ print("*" * len(title))
 bills = []
 bill_number = 1
 while bill_number <= number_of_months:
-    input_bill = input("Enter Bill #{}: ".format(bill_number))
     try:
-        bills.append(float(input_bill))
+        input_bill = float(input("Enter Bill #{}: ".format(bill_number)))
+        bills.append(input_bill)
         bill_number += 1
     except ValueError:
         print("Please enter a numeric value")
