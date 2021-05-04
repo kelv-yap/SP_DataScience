@@ -5,12 +5,15 @@ y = input("Please enter the value of y: ")
 
 if not x.isnumeric() or not y.isnumeric():
     print("One or more of your inputs are not numeric!")
+    print("Unable to continue. Program terminated.")
 
 elif not int(x) > 0 or not int(y) > 0:
     print("One or more of your inputs are not greater than 0")
+    print("Unable to continue. Program terminated.")
 
 elif not int(y) > int(x):
     print("You did not enter a value of y that is greater than x")
+    print("Unable to continue. Program terminated.")
 
 else:
     sum_of_numbers = 0
