@@ -14,8 +14,8 @@ def oddandeven(numbers_list):
 
 
 original_list = [random.randint(1, 1000) for x in range(100)]
-print("Original List: {}".format(original_list))
+print("Original List: {}".format(original_list), "\n")
 
 odd_list, even_list = oddandeven(original_list)
-print("Odd: {}".format(odd_list))
+print("Odd: {}".format(odd_list), "\n")
 print("Even: {}".format(even_list))
