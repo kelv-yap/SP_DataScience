@@ -1,8 +1,9 @@
 number_of_months = 6
-title = "Calculate the average of your last " + str(number_of_months) + "-months electricity bills"
+title = "Calculate the average of your last " + str(number_of_months) + "-months electricity bill"
 print("*" * len(title))
 print(title)
 print("*" * len(title))
+print()
 
 bills = []
 bill_number = 1
@@ -22,4 +23,4 @@ for bill in bills:
 print(*bill_str_list, sep=", ")
 
 average = sum(bills) / number_of_months
-print("The average of your electricity bill is ${:.2f}".format(average))
+print("The average of your electricity bill is {:.2f}".format(average))

@@ -11,8 +11,9 @@ print()
 choice = int(input("Enter your choice of food: "))
 index = choice - 1
 
-if choice > len(menu_list):
+if choice > len(menu_list) or choice < 1:
     print("Sorry, you have entered an invalid choice")
+    print("Unable to continue. Exiting program....")
 else:
     print("{} ${:.2f} added!".format(*menu_list[index]))
 
