@@ -10,13 +10,17 @@ data = np.loadtxt(filename,
                   delimiter=",")
 
 # Print out total rows of data in the file
-print("There are altogether " + str(len(data)) + " rows of data in the file " + filename)
+total_rows = str(len(data))
+print("There are altogether " + total_rows + " rows of data in the file " + filename)
 print()
 
 # Print out the number of years of data captured
 data_years = data['year']  # Just extract the year column
 years = np.unique(data_years)   # Get the unique values in this column
-print("There are " + str(len(years)) + " years of data captured from " + str(min(years)) + " to " + str(max(years)))
+number_of_years = str(len(years))
+from_year = str(min(years))
+to_year = str(max(years))
+print("There are " + number_of_years + " years of data captured from " + from_year + " to " + to_year)
 print()
 
 # Extract only the rows with “Total Residents" in the “level_1” column
