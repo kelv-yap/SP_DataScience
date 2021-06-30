@@ -1,6 +1,7 @@
+from datetime import datetime
+import os
 import numpy as np
 import matplotlib.pyplot as plt
-from datetime import datetime
 
 town_list = [
     "ANG MO KIO",
@@ -31,16 +32,8 @@ town_list = [
     "WOODLANDS",
     "YISHUN"]
 
-# else:
-#     print("{} ${:.2f} added!".format(*town_list[index]))
-#     quantity = int(input("How many {} do you want to order?: ".format(town_list[index][0])))
-#     total_cost = float(town_list[index][1]) * quantity
-#     print("The total cost for {} {} is ${:.2f}".format(quantity, town_list[index][0], total_cost))
 
-
-
-
-def regionMapper(town):
+def region_mapper(town):
     mapper = {
         "SEMBAWANG": "NORTH",
         "WOODLANDS": "NORTH",
@@ -73,94 +66,92 @@ def regionMapper(town):
     return mapper.get(town, "Invalid Town")
 
 
-# data1 = np.loadtxt("data/resale-flat-prices-based-on-approval-date-1990-1999.csv", skiprows=1, delimiter=",", dtype=str)
-# data2 = np.loadtxt("data/resale-flat-prices-based-on-approval-date-2000-feb-2012.csv", skiprows=1, delimiter=",", dtype=str)
-# data3 = np.loadtxt("data/resale-flat-prices-based-on-registration-date-from-mar-2012-to-dec-2014.csv", skiprows=1, delimiter=",", dtype=str)
-# data4 = np.loadtxt("data/resale-flat-prices-based-on-registration-date-from-jan-2015-to-dec-2016.csv", skiprows=1, delimiter=",", dtype=str)
-data5 = np.loadtxt("data/resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv", skiprows=1, delimiter=",", dtype=str)
+def calculate_price_per_square_feet(resale_price, square_meter_area):
+    convert_sm_to_sqft = 10.7639
+    square_feet_area = np.round(square_meter_area * convert_sm_to_sqft)
+    per_sqft = np.round(resale_price / square_feet_area, 2)
+    return per_sqft
 
-# print(len(data1))
-# print(len(data2))
-# print(len(data3))
-# print(len(data4))
-# print(len(data5))
-# data_sum = len(data1) + len(data2) + len(data3) + len(data4) + len(data5)
-# print("SUM: " + str(data_sum))
 
-# data = np.concatenate((data1, data2, data3, data4, data5), axis=0)
-data = data5
+os.remove("data/clean_data.csv")
+csv_data1 = np.loadtxt("data/resale-flat-prices-based-on-approval-date-1990-1999.csv", skiprows=1, delimiter=",", dtype=str)
+csv_data2 = np.loadtxt("data/resale-flat-prices-based-on-approval-date-2000-feb-2012.csv", skiprows=1, delimiter=",", dtype=str)
+csv_data3 = np.loadtxt("data/resale-flat-prices-based-on-registration-date-from-mar-2012-to-dec-2014.csv", skiprows=1, delimiter=",", dtype=str)
+csv_data4 = np.loadtxt("data/resale-flat-prices-based-on-registration-date-from-jan-2015-to-dec-2016.csv", skiprows=1, delimiter=",", dtype=str)
+csv_data5 = np.loadtxt("data/resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv", skiprows=1, delimiter=",", dtype=str)
 
-print("Original Data counts: {}".format(len(data)))
+# print(len(csv_data1))
+# print(len(csv_data2))
+# print(len(csv_data3))
+# print(len(csv_data4))
+# print(len(csv_data5))
+combined_data_count = len(csv_data1) + len(csv_data2) + len(csv_data3) + len(csv_data4) + len(csv_data5)
+print("Data Count (Before Concatenate): " + str(combined_data_count))
+
+combined_data = np.concatenate((csv_data1, csv_data2, csv_data3, csv_data4, csv_data5), axis=0)
+del csv_data1, csv_data2, csv_data3, csv_data4, csv_data5
+print("Original Data counts: {}".format(len(combined_data)))
 
 # Create column Region
 region = []
-for i in data[:, 1]:
-    region.append(regionMapper(i))
-data = np.insert(data, np.shape(data)[1], region, axis=1)
+for i in combined_data[:, 1]:
+    region.append(region_mapper(i))
+combined_data = np.insert(combined_data, np.shape(combined_data)[1], region, axis=1)
 
-print("Amended Data counts: {}".format(len(data)))
-
+# Save transformed data to new file
 np.savetxt("data/clean_data.csv",
-           data,
+           combined_data,
            delimiter=",",
            fmt=['%s', '%s', '%s', '%s', '%s', '%s', '%s'],
-           header='purchase_year, town, flat_type, floor_area_sqm, lease_commence_year, resale_price, region')
+           header='purchase_date, town, flat_type, floor_area_sqm, lease_commence_year, resale_price, region')
+del combined_data
 
-
-clean_data = np.loadtxt("data/clean_data.csv",
-                        skiprows=1,
-                        delimiter=",",
-                        # usecols=(0,3,5,6),
-                        dtype=[('purchase_year', 'U10'),
-                               ('town', 'U30'),
-                               ('flat_type', 'U30'),
-                               ('floor_area_sqm', 'i4'),
-                               ('lease_commence_year', 'U10'),
-                               ('resale_price', 'i4'),
-                               ('region', 'U30')]
-                        # dtype=str
-                        )
+saved_data = np.genfromtxt("data/clean_data.csv",
+                           delimiter=",",
+                           dtype=[('purchase_date', 'U10'),
+                                  ('town', 'U30'),
+                                  ('flat_type', 'U30'),
+                                  ('floor_area_sqm', 'i4'),
+                                  ('lease_commence_year', 'U10'),
+                                  ('resale_price', 'i4'),
+                                  ('region', 'U30')]
+                           )
+print("Saved Data counts: {}".format(len(saved_data)))
 
 # ======================
 # DATASET: 1
 # GRAPH: 1 (LINE CHART)
 # ======================
+chart1_data = np.copy(saved_data)
 
 # Transform yyyy-mm to yyyy
-clean_data['purchase_year'] = [datetime.strptime(date, '%Y-%m').year for date in clean_data['purchase_year']]
-years = np.unique(clean_data['purchase_year'])
+chart1_data['purchase_date'] = [datetime.strptime(date, '%Y-%m').year for date in chart1_data['purchase_date']]
+years = np.unique(chart1_data['purchase_date'])
 years = np.array(sorted(years))
 
-region = np.unique(clean_data['region'])
-region = np.array(sorted(region))
+regions = np.unique(chart1_data['region'])
+regions = np.array(sorted(regions))
 
-plot_data = []
+data_price_by_region = []
 print("============ START LOOPING ===========")
-for j in region:
-    data_region = []
-    for i in years:
-        x = clean_data[np.isin(clean_data['region'], [j]) &
-                       np.isin(clean_data['purchase_year'], [i])]
+for region in regions:
+    data_by_region = []
+    for year in years:
+        filtered_data = chart1_data[np.isin(chart1_data['region'], [region]) &
+                                    np.isin(chart1_data['purchase_date'], [year])]
 
-        has_elements = x.size > 0
+        has_elements = filtered_data.size > 0
         if has_elements:
-            price = x['resale_price']
-            sm = x['floor_area_sqm']
-            # psm = np.round(price / sm, 2)
-            # print("PSM: {}".format(psm))
-            # data_region.append(int(psm.mean()))
-
-            sqft = np.round(sm * 10.7639)
-            psqft = np.round(price / sqft, 2)
-            data_region.append(int(psqft.mean()))
-
+            resale_price = filtered_data['resale_price']
+            square_meter_area = filtered_data['floor_area_sqm']
+            per_sqft = calculate_price_per_square_feet(resale_price, square_meter_area)
+            data_by_region.append(int(per_sqft.mean()))
         else:
-            data_region.append(0)
+            data_by_region.append(0)
 
-    plot_data.append(data_region)
+    data_price_by_region.append(data_by_region)
 
 print("============ STOP LOOPING ===========")
-print(plot_data)
 
 # Graph 1: Line Graph (Cosmetic)
 color = ['orange', 'green', 'red', 'purple', 'black']
@@ -168,16 +159,16 @@ plt.suptitle('HDB RESALE PRICE', fontsize=14, fontweight='bold')
 plt.title('Average Resale Price per Square Feet (sqft) by Region')
 plt.xlabel('Year')
 plt.ylabel('Price (per sqft)')
-plt.xticks(np.arange(len(years)),years)
+plt.xticks(np.arange(len(years)), years)
 plt.yticks(np.arange(0, 700, 100))
 
 count = 0
-for i in plot_data:
-    plt.plot(i, label=region[count], color=color[count])
-    count = count+1
+for i in data_price_by_region:
+    plt.plot(i, label=regions[count], color=color[count])
+    count += 1
 legend = plt.legend(loc='upper left', shadow=True)
 plt.show()
-
+del chart1_data
 
 # ======================
 # DATASET: 1
@@ -195,34 +186,30 @@ if town_choice > len(town_list) or town_choice < 1:
     print("Sorry, you have entered an invalid choice")
     print("Unable to continue. Exiting program....")
 
-data_filtered_by_flat_type = clean_data[np.isin(clean_data['flat_type'], ['2 ROOM']) |
-                                        np.isin(clean_data['flat_type'], ['3 ROOM']) |
-                                        np.isin(clean_data['flat_type'], ['4 ROOM']) |
-                                        np.isin(clean_data['flat_type'], ['5 ROOM']) |
-                                        np.isin(clean_data['flat_type'], ['EXECUTIVE'])]
-hdb_type = np.unique(data_filtered_by_flat_type['flat_type'])
+filtered_data_by_flat_type = saved_data[np.isin(saved_data['flat_type'], ['2 ROOM']) |
+                                        np.isin(saved_data['flat_type'], ['3 ROOM']) |
+                                        np.isin(saved_data['flat_type'], ['4 ROOM']) |
+                                        np.isin(saved_data['flat_type'], ['5 ROOM']) |
+                                        np.isin(saved_data['flat_type'], ['EXECUTIVE'])]
+hdb_type = np.unique(filtered_data_by_flat_type['flat_type'])
 hdb_type = np.array(sorted(hdb_type))
-print(hdb_type)
+# print(hdb_type)
 
 x_label = []
-data_byRoomType = []
+data_by_room_type = []
 print("============ START LOOPING ===========")
-for typ in hdb_type:
-    x = data_filtered_by_flat_type[np.isin(data_filtered_by_flat_type['flat_type'], [typ]) &
-                                   np.isin(data_filtered_by_flat_type['town'], [town_selected])]
+for type in hdb_type:
+    filtered_data = filtered_data_by_flat_type[np.isin(filtered_data_by_flat_type['flat_type'], [type]) &
+                                               np.isin(filtered_data_by_flat_type['town'], [town_selected])]
 
-    has_elements = x.size > 0
+    has_elements = filtered_data.size > 0
     if has_elements:
-        x_label.append(typ)
-        price = x['resale_price']
-        sm = x['floor_area_sqm']
-        sqft = np.round(sm * 10.7639)
-        psqft = np.round(price / sqft, 2)
-        data_byRoomType.append(psqft)
-
+        x_label.append(type)
+        resale_price = filtered_data['resale_price']
+        square_meter_area = filtered_data['floor_area_sqm']
+        per_sqft = calculate_price_per_square_feet(resale_price, square_meter_area)
+        data_by_room_type.append(per_sqft)
 print("============ STOP LOOPING ===========")
-# print(x_label)
-# print(data_byRoomType)
 
 # Graph 2: Boxplot (Cosmetic)
 plt.suptitle('HDB RESALE PRICE in {}'.format(town_selected), fontsize=14, fontweight='bold')
@@ -230,7 +217,5 @@ plt.title('Average Resale Price per Square Feet (sqft) by Room Type')
 plt.xlabel('Room Type')
 plt.ylabel('Price (per sqft)')
 
-plt.boxplot(data_byRoomType, labels=x_label)
+plt.boxplot(data_by_room_type, labels=x_label)
 plt.show()
-
-
