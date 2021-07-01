@@ -4,6 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+# Handle load selected column from raw data
+
+
 def region_mapper(town):
     mapper = {
         "SEMBAWANG": "NORTH",
@@ -149,11 +152,7 @@ if town_choice > len(town_list) or town_choice < 1:
     print("Sorry, you have entered an invalid choice")
     print("Unable to continue. Exiting program....")
 
-filtered_data_by_flat_type = saved_data[np.isin(saved_data['flat_type'], ['2 ROOM']) |
-                                        np.isin(saved_data['flat_type'], ['3 ROOM']) |
-                                        np.isin(saved_data['flat_type'], ['4 ROOM']) |
-                                        np.isin(saved_data['flat_type'], ['5 ROOM']) |
-                                        np.isin(saved_data['flat_type'], ['EXECUTIVE'])]
+filtered_data_by_flat_type = saved_data[np.isin(saved_data['flat_type'], ['2 ROOM', '3 ROOM', '4 ROOM', '5 ROOM', 'EXECUTIVE'])]
 hdb_type = np.unique(filtered_data_by_flat_type['flat_type'])
 
 x_label = []

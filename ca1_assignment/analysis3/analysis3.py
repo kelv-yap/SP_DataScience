@@ -29,3 +29,7 @@ plt.scatter(data_coupon['x_coord'], data_coupon['y_coord'], marker='x', color='r
 plt.scatter(data_electric['x_coord'], data_electric['y_coord'], marker='.', color='blue', alpha=0.5)
 
 plt.show()
+
+# handle ',' issue when load from 'csv'
+# handle data #NAME issue
+# handle data count issue (not tally)
