@@ -43,10 +43,7 @@ saved_data = np.genfromtxt("data/clean_data.csv",
                            )
 print("Saved Data counts: {}".format(len(saved_data)))
 
-# ======================
-# DATASET: 1
-# GRAPH: 2 (BOXPLOT)
-# ======================
+
 town_list = np.unique(saved_data['town'])
 town_count = 1
 for town in town_list:
@@ -60,6 +57,12 @@ if town_choice > len(town_list) or town_choice < 1:
     print("Sorry, you have entered an invalid choice")
     print("Unable to continue. Exiting program....")
 
+
+
+# ======================
+# DATASET: 2
+# GRAPH: 1 (BOXPLOT)
+# ======================
 filtered_data_by_flat_type = saved_data[np.isin(saved_data['flat_type'], ['2 ROOM', '3 ROOM', '4 ROOM', '5 ROOM', 'EXECUTIVE'])]
 hdb_type = np.unique(filtered_data_by_flat_type['flat_type'])
 
@@ -86,3 +89,71 @@ plt.ylabel('Price (per sqft)')
 
 plt.boxplot(data_by_room_type, labels=x_label)
 plt.show()
+
+
+
+# ======================
+# DATASET: 2
+# GRAPH: 2 (BAR CHART)
+# ======================
+chart2_data = np.copy(saved_data)
+print("COUNT SAVED DATA: {}".format(len(saved_data)))
+print("COUNT CHART2 DATA: {}".format(len(chart2_data)))
+chart2_data['purchase_date'] = [datetime.strptime(date, '%Y-%m').month for date in chart2_data['purchase_date']]
+
+months = np.unique(chart2_data['purchase_date'])
+# print(months)
+
+print(town_selected)
+# filtered_data_by_town_selected = chart2_data[np.isin(chart2_data['town'], [town_selected])]
+# print("COUNT filtered_data_by_town_selected DATA: {}".format(len(filtered_data_by_town_selected)))
+# print(filtered_data_by_town_selected)
+# print(np.unique(filtered_data_by_town_selected['town']))
+
+chart_2_x_label = []
+data_total_purchase_by_month = []
+for month in months:
+    # filtered_data = filtered_data_by_town_selected[np.isin(filtered_data_by_town_selected['purchase_date'], [month])]
+    filtered_data = chart2_data[np.isin(chart2_data['purchase_date'], [month])]
+    print("For {} month: {}".format(month, len(filtered_data)))
+    chart_2_x_label.append(month)
+    data_total_purchase_by_month.append(len(filtered_data))
+
+print(chart_2_x_label)
+print(data_total_purchase_by_month)
+
+
+
+# teams = np.arange(3)
+# scores = (20, 35, 30)
+width = 0.35
+p1t = plt.bar(chart_2_x_label, data_total_purchase_by_month, width, color='#d62728')
+
+# plt.ylabel('Scores')
+# plt.title('Scores by Team')
+# plt.xticks(chart_2_x_label, ('Team 1', 'Team 2', 'Team 3'))
+plt.yticks(np.arange(0, 20000, 2000))
+
+
+
+
+
+# Graph 2: Bar Chart (Cosmetic)
+plt.suptitle('HDB RESALE TRANSACTIONS', fontsize=14, fontweight='bold')
+plt.title('Total Resale Transaction by Month')
+plt.xlabel('Month')
+plt.ylabel('Total')
+
+# plt = plt.bar(chart_2_x_label, data_total_purchase_by_month)
+# plt.yticks(np.arange(data_total_purchase_by_month))
+
+plt.show()
+
+
+
+
+
+
+
+
+
