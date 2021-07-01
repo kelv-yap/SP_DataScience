@@ -3,35 +3,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-town_list = [
-    "ANG MO KIO",
-    "BEDOK",
-    "BISHAN",
-    "BUKIT BATOK",
-    "BUKIT MERAH",
-    "BUKIT PANJANG",
-    "BUKIT TIMAH",
-    "CENTRAL AREA",
-    "CHOA CHU KANG",
-    "CLEMENTI",
-    "GEYLANG",
-    "HOUGANG",
-    "JURONG EAST",
-    "JURONG WEST",
-    "KALLANG/WHAMPOA",
-    "LIM CHU KANG",
-    "MARINE PARADE",
-    "PASIR RIS",
-    "PUNGGOL",
-    "QUEENSTOWN",
-    "SEMBAWANG",
-    "SENGKANG",
-    "SERANGOON",
-    "TAMPINES",
-    "TOA PAYOH",
-    "WOODLANDS",
-    "YISHUN"]
-
 
 def region_mapper(town):
     mapper = {
@@ -80,11 +51,6 @@ csv_data3 = np.loadtxt("data/resale-flat-prices-based-on-registration-date-from-
 csv_data4 = np.loadtxt("data/resale-flat-prices-based-on-registration-date-from-jan-2015-to-dec-2016.csv", skiprows=1, delimiter=",", dtype=str)
 csv_data5 = np.loadtxt("data/resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv", skiprows=1, delimiter=",", dtype=str)
 
-# print(len(csv_data1))
-# print(len(csv_data2))
-# print(len(csv_data3))
-# print(len(csv_data4))
-# print(len(csv_data5))
 combined_data_count = len(csv_data1) + len(csv_data2) + len(csv_data3) + len(csv_data4) + len(csv_data5)
 print("Data Count (Before Concatenate): " + str(combined_data_count))
 
@@ -126,14 +92,12 @@ chart1_data = np.copy(saved_data)
 
 # Transform yyyy-mm to yyyy
 chart1_data['purchase_date'] = [datetime.strptime(date, '%Y-%m').year for date in chart1_data['purchase_date']]
-years = np.unique(chart1_data['purchase_date'])
-years = np.array(sorted(years))
 
+years = np.unique(chart1_data['purchase_date'])
 regions = np.unique(chart1_data['region'])
-regions = np.array(sorted(regions))
 
 data_price_by_region = []
-print("============ START LOOPING ===========")
+
 for region in regions:
     data_by_region = []
     for year in years:
@@ -150,8 +114,6 @@ for region in regions:
             data_by_region.append(0)
 
     data_price_by_region.append(data_by_region)
-
-print("============ STOP LOOPING ===========")
 
 # Graph 1: Line Graph (Cosmetic)
 color = ['orange', 'green', 'red', 'purple', 'black']
@@ -174,6 +136,7 @@ del chart1_data
 # DATASET: 1
 # GRAPH: 2 (BOXPLOT)
 # ======================
+town_list = np.unique(saved_data['town'])
 town_count = 1
 for town in town_list:
     print("{}. {}".format(str(town_count), town), end="\n")
@@ -192,12 +155,10 @@ filtered_data_by_flat_type = saved_data[np.isin(saved_data['flat_type'], ['2 ROO
                                         np.isin(saved_data['flat_type'], ['5 ROOM']) |
                                         np.isin(saved_data['flat_type'], ['EXECUTIVE'])]
 hdb_type = np.unique(filtered_data_by_flat_type['flat_type'])
-hdb_type = np.array(sorted(hdb_type))
-# print(hdb_type)
 
 x_label = []
 data_by_room_type = []
-print("============ START LOOPING ===========")
+
 for type in hdb_type:
     filtered_data = filtered_data_by_flat_type[np.isin(filtered_data_by_flat_type['flat_type'], [type]) &
                                                np.isin(filtered_data_by_flat_type['town'], [town_selected])]
@@ -209,7 +170,6 @@ for type in hdb_type:
         square_meter_area = filtered_data['floor_area_sqm']
         per_sqft = calculate_price_per_square_feet(resale_price, square_meter_area)
         data_by_room_type.append(per_sqft)
-print("============ STOP LOOPING ===========")
 
 # Graph 2: Boxplot (Cosmetic)
 plt.suptitle('HDB RESALE PRICE in {}'.format(town_selected), fontsize=14, fontweight='bold')
