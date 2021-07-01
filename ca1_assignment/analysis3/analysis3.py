@@ -1,3 +1,4 @@
+from matplotlib.lines import Line2D
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -20,6 +21,9 @@ plt.ylabel("Latitude", fontsize=10)
 plt.xlabel("Longitude", fontsize=10)
 plt.ylim(12576.34, 50172.05)
 plt.xlim(919.05, 54338.72)
+legend_elements = [Line2D([0], [0], marker='X', color='w', label='Coupon', markerfacecolor='r', markersize=10),
+                   Line2D([0], [0], marker='o', color='w', label='Electronic', markerfacecolor='b', markersize=10)]
+plt.legend(handles=legend_elements, loc='upper left', title='Type of Parking')
 
 plt.scatter(data_coupon['x_coord'], data_coupon['y_coord'], marker='x', color='red', alpha=0.5)
 plt.scatter(data_electric['x_coord'], data_electric['y_coord'], marker='.', color='blue', alpha=0.5)
