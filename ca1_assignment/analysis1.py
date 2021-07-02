@@ -111,6 +111,8 @@ for region in regions:
 
 # Graph 1: Line Graph (Cosmetic)
 color = ['orange', 'green', 'red', 'purple', 'black']
+plt.grid(axis='x', alpha=0.5)
+plt.grid(axis='y', alpha=0.5)
 plt.suptitle('HDB RESALE PRICE', fontsize=14, fontweight='bold')
 plt.title('Average Resale Price per Square Feet (sqft) by Region')
 plt.xlabel('Year')

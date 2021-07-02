@@ -13,7 +13,7 @@ csv_data = np.genfromtxt("data/hdb-carpark-information.csv",
 data_coupon = csv_data[np.isin(csv_data['type_of_parking_system'], ['COUPON PARKING'])]
 data_electric = csv_data[np.isin(csv_data['type_of_parking_system'], ['ELECTRONIC PARKING'])]
 
-singapore_img = plt.imread('sg_map.png')
+singapore_img = plt.imread('data/sg_map.png')
 plt.imshow(singapore_img, extent=[919.05, 54338.72, 12576.34, 50172.05], alpha=0.5)
 plt.suptitle('HDB CARPARK', fontsize=14, fontweight='bold')
 plt.title('Location of Different Type of Parking Singapore')
