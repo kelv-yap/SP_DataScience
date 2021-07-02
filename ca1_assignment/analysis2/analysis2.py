@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
 
 def calculate_price_per_square_feet(resale_price, square_meter_area):
@@ -9,6 +10,21 @@ def calculate_price_per_square_feet(resale_price, square_meter_area):
     square_feet_area = np.round(square_meter_area * convert_sm_to_sqft)
     per_sqft = np.round(resale_price / square_feet_area, 2)
     return per_sqft
+
+
+def calculate_price_per_month(purchase_year, lease_year, resale_price):
+    lease = 99
+    lease_remaining_year = np.array(lease_year) + np.array(lease) - np.array(purchase_year)
+    lease_remaining_month = lease_remaining_year * 12
+    price_per_month = np.round(resale_price / lease_remaining_month, 2)
+    return price_per_month
+
+
+def calculate_histogram_range(min_value, max_value):
+    hist_floor = int(math.floor(min_value / 100.0)) * 100
+    hist_ceiling = int(math.ceil(max_value / 100.0)) * 100
+    hist_range = np.arange(hist_floor, hist_ceiling+1, 100)
+    return hist_range
 
 
 if os.path.exists('data/clean_data.csv'):
@@ -24,7 +40,6 @@ combined_data = np.concatenate((csv_data1, csv_data2, csv_data3), axis=0)
 del csv_data1, csv_data2, csv_data3
 print("Data Count (After Concatenate): {}".format(len(combined_data)))
 
-# Save transformed data to new file
 np.savetxt("data/clean_data.csv",
            combined_data,
            delimiter=",",
@@ -43,7 +58,6 @@ saved_data = np.genfromtxt("data/clean_data.csv",
                            )
 print("Saved Data counts: {}".format(len(saved_data)))
 
-
 town_list = np.unique(saved_data['town'])
 town_count = 1
 for town in town_list:
@@ -57,14 +71,15 @@ if town_choice > len(town_list) or town_choice < 1:
     print("Sorry, you have entered an invalid choice")
     print("Unable to continue. Exiting program....")
 
-
-
 # ======================
 # DATASET: 2
 # GRAPH: 1 (BOXPLOT)
 # ======================
 filtered_data_by_flat_type = saved_data[np.isin(saved_data['flat_type'], ['2 ROOM', '3 ROOM', '4 ROOM', '5 ROOM', 'EXECUTIVE'])]
 hdb_type = np.unique(filtered_data_by_flat_type['flat_type'])
+
+filtered_data_by_flat_type['purchase_date'] = [datetime.strptime(date, '%Y-%m').year for date in filtered_data_by_flat_type['purchase_date']]
+years = np.array([int(i) for i in (np.unique(filtered_data_by_flat_type['purchase_date']))])
 
 x_label = []
 data_by_room_type = []
@@ -75,7 +90,7 @@ for type in hdb_type:
 
     has_elements = filtered_data.size > 0
     if has_elements:
-        x_label.append(type)
+        x_label.append("{} \n Total: {}".format(type, len(filtered_data)))
         resale_price = filtered_data['resale_price']
         square_meter_area = filtered_data['floor_area_sqm']
         per_sqft = calculate_price_per_square_feet(resale_price, square_meter_area)
@@ -83,77 +98,35 @@ for type in hdb_type:
 
 # Graph 2: Boxplot (Cosmetic)
 plt.suptitle('HDB RESALE PRICE in {}'.format(town_selected), fontsize=14, fontweight='bold')
-plt.title('Average Resale Price per Square Feet (sqft) by Room Type')
+plt.title('Resale Price per Square Feet (sqft) by Room Type between Year {} to {}'.format(years.min(), years.max()))
 plt.xlabel('Room Type')
 plt.ylabel('Price (per sqft)')
 
-plt.boxplot(data_by_room_type, labels=x_label)
+plt.boxplot(np.array(data_by_room_type), labels=x_label)
 plt.show()
-
-
 
 # ======================
 # DATASET: 2
-# GRAPH: 2 (BAR CHART)
+# GRAPH: 2 (HISTOGRAM)
 # ======================
-chart2_data = np.copy(saved_data)
-print("COUNT SAVED DATA: {}".format(len(saved_data)))
-print("COUNT CHART2 DATA: {}".format(len(chart2_data)))
-chart2_data['purchase_date'] = [datetime.strptime(date, '%Y-%m').month for date in chart2_data['purchase_date']]
+filtered_data_by_town = saved_data[np.isin(saved_data['town'], [town_selected])]
+filtered_data_by_town['purchase_date'] = [datetime.strptime(date, '%Y-%m').year for date in filtered_data_by_town['purchase_date']]
 
-months = np.unique(chart2_data['purchase_date'])
-# print(months)
+data_by_price_per_month = calculate_price_per_month([int(i) for i in filtered_data_by_town['purchase_date']],
+                                                    [int(i) for i in filtered_data_by_town['lease_commence_year']],
+                                                    filtered_data_by_town['resale_price'])
 
-print(town_selected)
-# filtered_data_by_town_selected = chart2_data[np.isin(chart2_data['town'], [town_selected])]
-# print("COUNT filtered_data_by_town_selected DATA: {}".format(len(filtered_data_by_town_selected)))
-# print(filtered_data_by_town_selected)
-# print(np.unique(filtered_data_by_town_selected['town']))
+hist_range = calculate_histogram_range(data_by_price_per_month.min(), data_by_price_per_month.max())
+# print("hist_range: {}".format(hist_range))
 
-chart_2_x_label = []
-data_total_purchase_by_month = []
-for month in months:
-    # filtered_data = filtered_data_by_town_selected[np.isin(filtered_data_by_town_selected['purchase_date'], [month])]
-    filtered_data = chart2_data[np.isin(chart2_data['purchase_date'], [month])]
-    print("For {} month: {}".format(month, len(filtered_data)))
-    chart_2_x_label.append(month)
-    data_total_purchase_by_month.append(len(filtered_data))
+# plt.hist(plot_data, range=(x_min, x_max), bins=x_bin)
+plt.hist(data_by_price_per_month, bins=hist_range, histtype='bar', ec='black')
 
-print(chart_2_x_label)
-print(data_total_purchase_by_month)
-
-
-
-# teams = np.arange(3)
-# scores = (20, 35, 30)
-width = 0.35
-p1t = plt.bar(chart_2_x_label, data_total_purchase_by_month, width, color='#d62728')
-
-# plt.ylabel('Scores')
-# plt.title('Scores by Team')
-# plt.xticks(chart_2_x_label, ('Team 1', 'Team 2', 'Team 3'))
-plt.yticks(np.arange(0, 20000, 2000))
-
-
-
-
-
-# Graph 2: Bar Chart (Cosmetic)
-plt.suptitle('HDB RESALE TRANSACTIONS', fontsize=14, fontweight='bold')
-plt.title('Total Resale Transaction by Month')
-plt.xlabel('Month')
-plt.ylabel('Total')
-
-# plt = plt.bar(chart_2_x_label, data_total_purchase_by_month)
-# plt.yticks(np.arange(data_total_purchase_by_month))
+plt.grid(axis='y', alpha=0.5)
+plt.suptitle('HDB RESALE PRICE in {}'.format(town_selected), fontsize=14, fontweight='bold')
+plt.title('Price per month until End of Lease (usually 99 years)')
+plt.xlabel("Price per month ($)")
+plt.ylabel("Frequency")
+plt.xticks(hist_range)
 
 plt.show()
-
-
-
-
-
-
-
-
-
