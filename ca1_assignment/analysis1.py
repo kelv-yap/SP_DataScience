@@ -53,11 +53,11 @@ csv_data4 = np.loadtxt("data/resale-flat-prices-based-on-registration-date-from-
 csv_data5 = np.loadtxt("data/resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv", skiprows=1, delimiter=",", dtype=str)
 
 combined_data_count = len(csv_data1) + len(csv_data2) + len(csv_data3) + len(csv_data4) + len(csv_data5)
-print("Data Count (Before Concatenate): " + str(combined_data_count))
+print("Data Count (Before Combine): " + str(combined_data_count))
 
 combined_data = np.concatenate((csv_data1, csv_data2, csv_data3, csv_data4, csv_data5), axis=0)
 del csv_data1, csv_data2, csv_data3, csv_data4, csv_data5
-print("Data Count (Before Concatenate): {}".format(len(combined_data)))
+print("Data Count (After Combine): {}".format(len(combined_data)))
 
 # Create column Region
 region = []
@@ -83,20 +83,18 @@ saved_data = np.genfromtxt("data/clean_data.csv",
                                   ('resale_price', 'i4'),
                                   ('region', 'U30')]
                            )
-print("Saved Data counts: {}".format(len(saved_data)))
+print("Data Count (Saved Data): {}".format(len(saved_data)))
 
-chart1_data = np.copy(saved_data)
-chart1_data['purchase_date'] = [datetime.strptime(date, '%Y-%m').year for date in chart1_data['purchase_date']]
-
-years = np.unique(chart1_data['purchase_date'])
-regions = np.unique(chart1_data['region'])
+saved_data['purchase_date'] = [datetime.strptime(date, '%Y-%m').year for date in saved_data['purchase_date']]
+years = np.unique(saved_data['purchase_date'])
+regions = np.unique(saved_data['region'])
 
 data_price_by_region = []
 for region in regions:
     data_by_region = []
     for year in years:
-        filtered_data = chart1_data[np.isin(chart1_data['region'], [region]) &
-                                    np.isin(chart1_data['purchase_date'], [year])]
+        filtered_data = saved_data[np.isin(saved_data['region'], [region]) &
+                                   np.isin(saved_data['purchase_date'], [year])]
 
         has_elements = filtered_data.size > 0
         if has_elements:
@@ -109,15 +107,15 @@ for region in regions:
 
     data_price_by_region.append(data_by_region)
 
-# Graph 1: Line Graph (Cosmetic)
+years = np.array([int(i) for i in years])
 color = ['orange', 'green', 'red', 'purple', 'black']
 plt.grid(axis='x', alpha=0.5)
 plt.grid(axis='y', alpha=0.5)
-plt.suptitle('HDB RESALE PRICE', fontsize=14, fontweight='bold')
-plt.title('Average Resale Price per Square Feet (sqft) by Region')
-plt.xlabel('Year')
-plt.ylabel('Price (per sqft)')
-plt.xticks(np.arange(len(years)), years)
+plt.suptitle("HDB RESALE PRICE \n between Year {} to {}".format(years.min(), years.max()), fontsize=14, fontweight='bold')
+plt.title("Average Resale Price per Square Feet (sqft) by Region")
+plt.xlabel("Year")
+plt.ylabel("Price per sqft (SGD)")
+plt.xticks(np.arange(len(years)), years, rotation=45)
 plt.yticks(np.arange(0, 700, 100))
 
 count = 0
@@ -125,4 +123,5 @@ for i in data_price_by_region:
     plt.plot(i, label=regions[count], color=color[count])
     count += 1
 legend = plt.legend(loc='upper left', shadow=True)
+
 plt.show()

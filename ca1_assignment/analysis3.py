@@ -15,17 +15,19 @@ data_electric = csv_data[np.isin(csv_data['type_of_parking_system'], ['ELECTRONI
 
 singapore_img = plt.imread('data/sg_map.png')
 plt.imshow(singapore_img, extent=[919.05, 54338.72, 12576.34, 50172.05], alpha=0.5)
-plt.suptitle('HDB CARPARK', fontsize=14, fontweight='bold')
-plt.title('Location of Different Type of Parking Singapore')
-plt.ylabel("Latitude", fontsize=10)
-plt.xlabel("Longitude", fontsize=10)
-plt.ylim(12576.34, 50172.05)
-plt.xlim(919.05, 54338.72)
+plt.suptitle("HDB CARPARK", fontsize=14, fontweight='bold')
+plt.title("Different Type of Parking System in HDB Singapore")
+# plt.ylabel("Latitude", fontsize=10)
+# plt.xlabel("Longitude", fontsize=10)
+# plt.ylim(12576.34, 50172.05)
+# plt.xlim(919.05, 54338.72)
 legend_elements = [Line2D([0], [0], marker='X', color='w', label='Coupon', markerfacecolor='r', markersize=10),
                    Line2D([0], [0], marker='o', color='w', label='Electronic', markerfacecolor='b', markersize=10)]
 plt.legend(handles=legend_elements, loc='upper left', title='Type of Parking')
+plt.axis('off')
 
-plt.scatter(data_coupon['x_coord'], data_coupon['y_coord'], marker='x', color='red', alpha=0.5)
-plt.scatter(data_electric['x_coord'], data_electric['y_coord'], marker='.', color='blue', alpha=0.5)
+plt.scatter(data_coupon['x_coord'], data_coupon['y_coord'], marker='x', color='red', alpha=0.6)
+plt.scatter(data_electric['x_coord'], data_electric['y_coord'], marker='.', color='blue', alpha=0.6)
+
 
 plt.show()

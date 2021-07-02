@@ -1,3 +1,4 @@
+from pylab import text
 from datetime import datetime
 import os
 import numpy as np
@@ -72,7 +73,6 @@ if town_choice > len(town_list) or town_choice < 1:
     print("Unable to continue. Exiting program....")
 
 # ======================
-# DATASET: 2
 # GRAPH: 1 (BOXPLOT)
 # ======================
 filtered_data_by_flat_type = saved_data[np.isin(saved_data['flat_type'], ['2 ROOM', '3 ROOM', '4 ROOM', '5 ROOM', 'EXECUTIVE'])]
@@ -96,17 +96,19 @@ for type in hdb_type:
         per_sqft = calculate_price_per_square_feet(resale_price, square_meter_area)
         data_by_room_type.append(per_sqft)
 
-# Graph 2: Boxplot (Cosmetic)
-plt.suptitle('HDB RESALE PRICE in {}'.format(town_selected), fontsize=14, fontweight='bold')
-plt.title('Resale Price per Square Feet (sqft) by Room Type between Year {} to {}'.format(years.min(), years.max()))
-plt.xlabel('Room Type')
-plt.ylabel('Price (per sqft)')
-
-plt.boxplot(np.array(data_by_room_type), labels=x_label)
-plt.show()
+plt.figure(1)
+plt.subplot(111)
+plt.suptitle("HDB RESALE PRICE in {} \n between Year {} to {}".format(town_selected, years.min(), years.max()), fontsize=14, fontweight='bold')
+plt.title("Price per Square Feet (sqft) by Room Type")
+plt.xlabel("Room Type")
+plt.ylabel("Price per sqft (SGD)")
+# plt.boxplot(np.array(data_by_room_type), labels=x_label)
+boxplot_dictionary = plt.boxplot(np.array(data_by_room_type), labels=x_label)
+for line in boxplot_dictionary['medians']:
+    x, y = line.get_xydata()[1] # top of median line
+    text(x, y, int(y), horizontalalignment='right') # draw above, centered
 
 # ======================
-# DATASET: 2
 # GRAPH: 2 (HISTOGRAM)
 # ======================
 filtered_data_by_town = saved_data[np.isin(saved_data['town'], [town_selected])]
@@ -117,16 +119,15 @@ data_by_price_per_month = calculate_price_per_month([int(i) for i in filtered_da
                                                     filtered_data_by_town['resale_price'])
 
 hist_range = calculate_histogram_range(data_by_price_per_month.min(), data_by_price_per_month.max())
-# print("hist_range: {}".format(hist_range))
 
+plt.figure(2)
+plt.subplot(111)
 # plt.hist(plot_data, range=(x_min, x_max), bins=x_bin)
 plt.hist(data_by_price_per_month, bins=hist_range, histtype='bar', ec='black')
-
 plt.grid(axis='y', alpha=0.5)
-plt.suptitle('HDB RESALE PRICE in {}'.format(town_selected), fontsize=14, fontweight='bold')
-plt.title('Price per month until End of Lease (usually 99 years)')
-plt.xlabel("Price per month ($)")
-plt.ylabel("Frequency")
+plt.suptitle("HDB RESALE PRICE in {} \n between Year {} to {}".format(town_selected, years.min(), years.max()), fontsize=14, fontweight='bold')
+plt.title("Price per month from purchase date until End of Lease (usually 99 years)")
+plt.xlabel("Price per month (SGD)")
+plt.ylabel("Total Transaction")
 plt.xticks(hist_range)
-
 plt.show()

@@ -1,48 +1,32 @@
 import matplotlib.pyplot as plt
-import numpy as np; np.random.seed(1)
+import numpy as np
 
-x = np.random.rand(5)
-y = np.random.rand(5)
-names = np.array(list("ABCDE"))
-# c = np.random.randint(1,5,size=5)
+# Generate data for plotting:
+x = np.linspace(0,2*np.pi,100)
+y0 = np.sin(x)
+y1 = .9*np.sin(.9*x)
+# Find their maxima and minima and store
+maxes = np.empty((2,2))
+mins = np.empty((2,2))
+for k,y in enumerate([y0,y1]):
+    maxloc = y.argmax()
+    maxes[k] = x[maxloc], y[maxloc]
+    minloc = y.argmin()
+    mins[k] = x[minloc], y[minloc]
 
-# norm = plt.Normalize(1,4)
-# cmap = plt.cm.RdYlGn
+# Instantiate figure and plot
+fig = plt.figure()
+ax = fig.add_subplot(111)
+ax.plot(x,y0, label='y0')
+ax.plot(x,y1, label='y1')
+# Plot maxima and minima, and keep references to the lines
+maxline, = ax.plot(maxes[:,0], maxes[:,1], 'r^')
+minline, = ax.plot(mins[:,0], mins[:,1], 'ko')
 
-fig,ax = plt.subplots()
-sc = plt.scatter(x,y, s=100)
-
-annot = ax.annotate("", xy=(0,0), xytext=(20,20),textcoords="offset points",
-                    bbox=dict(boxstyle="round", fc="w"),
-                    arrowprops=dict(arrowstyle="->"))
-annot.set_visible(False)
-
-def update_annot(ind):
-    pos = sc.get_offsets()[ind["ind"][0]]
-    annot.xy = pos
-    text = "{}, {}".format(" ".join(list(map(str,ind["ind"]))),
-                           " ".join([names[n] for n in ind["ind"]]))
-    annot.set_text(text)
-    # annot.get_bbox_patch().set_facecolor(cmap(norm(c[ind["ind"][0]])))
-    annot.get_bbox_patch().set_alpha(0.4)
-
-
-def hover(event):
-    print("Event: {}".format(event))
-    vis = annot.get_visible()
-    if event.inaxes == ax:
-        cont, ind = sc.contains(event)
-        if cont:
-            print("cont: {}".format(cont))
-            print("ind: {}".format(ind))
-            update_annot(ind)
-            annot.set_visible(True)
-            fig.canvas.draw_idle()
-        else:
-            if vis:
-                annot.set_visible(False)
-                fig.canvas.draw_idle()
-
-fig.canvas.mpl_connect("motion_notify_event", hover)
-
-plt.show()
+# Add first legend:  only labeled data is included
+leg1 = ax.legend(loc='lower left')
+# Add second legend for the maxes and mins.
+# leg1 will be removed from figure
+leg2 = ax.legend([maxline,minline],['max','min'], loc='upper right')
+# Manually add the first legend back
+ax.add_artist(leg1)
