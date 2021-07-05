@@ -120,6 +120,6 @@ count = 0
 for i in data_price_by_region:
     plt.plot(i, label=regions[count], color=color[count])
     count += 1
-legend = plt.legend(loc='upper left', shadow=True)
+legend = plt.legend(loc='upper left', shadow=True, title='Region')
 
 plt.show()
