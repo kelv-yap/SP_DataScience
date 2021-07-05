@@ -59,13 +59,11 @@ combined_data = np.concatenate((csv_data1, csv_data2, csv_data3, csv_data4, csv_
 del csv_data1, csv_data2, csv_data3, csv_data4, csv_data5
 print("Data Count (After Combine): {}".format(len(combined_data)))
 
-# Create column Region
 region = []
 for i in combined_data[:, 1]:
     region.append(region_mapper(i))
 combined_data = np.insert(combined_data, np.shape(combined_data)[1], region, axis=1)
 
-# Save transformed data to new file
 np.savetxt("data/clean_data.csv",
            combined_data,
            delimiter=",",

@@ -66,11 +66,12 @@ for town in town_list:
     town_count += 1
 
 town_choice = int(input("Please select your preferred town (key in numbering): "))
-town_index = town_choice - 1
-town_selected = town_list[town_index]
 if town_choice > len(town_list) or town_choice < 1:
     print("Sorry, you have entered an invalid choice")
     print("Unable to continue. Exiting program....")
+    exit()
+town_index = town_choice - 1
+town_selected = town_list[town_index]
 
 # ======================
 # GRAPH: 1 (BOXPLOT)
@@ -83,7 +84,6 @@ years = np.array([int(i) for i in (np.unique(filtered_data_by_flat_type['purchas
 
 x_label = []
 data_by_room_type = []
-
 for type in hdb_type:
     filtered_data = filtered_data_by_flat_type[np.isin(filtered_data_by_flat_type['flat_type'], [type]) &
                                                np.isin(filtered_data_by_flat_type['town'], [town_selected])]
@@ -99,14 +99,14 @@ for type in hdb_type:
 plt.figure(1)
 plt.subplot(111)
 plt.suptitle("HDB RESALE PRICE in {} \n between Year {} to {}".format(town_selected, years.min(), years.max()), fontsize=14, fontweight='bold')
-plt.title("Price per Square Feet (sqft) by Room Type")
+plt.title("Median Price per Square Feet (sqft) by Room Type")
 plt.xlabel("Room Type")
 plt.ylabel("Price per sqft (SGD)")
-# plt.boxplot(np.array(data_by_room_type), labels=x_label)
+
 boxplot_dictionary = plt.boxplot(np.array(data_by_room_type), labels=x_label)
 for line in boxplot_dictionary['medians']:
-    x, y = line.get_xydata()[1] # top of median line
-    text(x, y, int(y), horizontalalignment='right') # draw above, centered
+    x, y = line.get_xydata()[1]
+    text(x, y, int(y), horizontalalignment='right')
 
 # ======================
 # GRAPH: 2 (HISTOGRAM)
@@ -122,11 +122,10 @@ hist_range = calculate_histogram_range(data_by_price_per_month.min(), data_by_pr
 
 plt.figure(2)
 plt.subplot(111)
-# plt.hist(plot_data, range=(x_min, x_max), bins=x_bin)
 plt.hist(data_by_price_per_month, bins=hist_range, histtype='bar', ec='black')
 plt.grid(axis='y', alpha=0.5)
 plt.suptitle("HDB RESALE PRICE in {} \n between Year {} to {}".format(town_selected, years.min(), years.max()), fontsize=14, fontweight='bold')
-plt.title("Price per month from purchase date until End of Lease (usually 99 years)")
+plt.title("Price per month from Purchase Date until End of Lease (usually 99 years)")
 plt.xlabel("Price per month (SGD)")
 plt.ylabel("Total Transaction")
 plt.xticks(hist_range)
