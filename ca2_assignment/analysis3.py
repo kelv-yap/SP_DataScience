@@ -1,5 +1,6 @@
 from matplotlib.lines import Line2D
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 
@@ -10,16 +11,10 @@ def calculate_parking_system_distribution(coupon_count, electronic_count):
     return coupon_percentage, electronic_percentage
 
 
-csv_data = np.genfromtxt("data/hdb-carpark-information.csv",
-                         delimiter=",",
-                         usecols=(2, 3, 4, 5),
-                         dtype=[('x_coord', 'f8'),
-                                ('y_coord', 'f8'),
-                                ('car_park_type', 'U30'),
-                                ('type_of_parking_system', 'U30')])
+df = pd.read_csv('data/hdb-carpark-information.csv', sep=',')
 
-data_coupon = csv_data[np.isin(csv_data['type_of_parking_system'], ['COUPON PARKING'])]
-data_electronic = csv_data[np.isin(csv_data['type_of_parking_system'], ['ELECTRONIC PARKING'])]
+data_coupon = df[df.type_of_parking_system.isin(['COUPON PARKING'])]
+data_electronic = df[df.type_of_parking_system.isin(['ELECTRONIC PARKING'])]
 perc_coupon, perc_electronic = calculate_parking_system_distribution(len(data_coupon), len(data_electronic))
 
 singapore_img = plt.imread('data/sg_map.png')
