@@ -4,13 +4,6 @@ import numpy as np
 import pandas as pd
 
 
-def calculate_price_per_square_feet(resale_price, square_meter_area):
-    convert_sm_to_sqft = 10.7639
-    square_feet_area = np.round(square_meter_area * convert_sm_to_sqft)
-    per_sqft = np.round(resale_price / square_feet_area, 2)
-    return per_sqft
-
-
 def region_mapper(town):
     mapper = {
         "SEMBAWANG": "NORTH",
@@ -48,19 +41,19 @@ def data_collection_and_transformation():
     filtered_columns = ['month', 'town', 'flat_type', 'floor_area_sqm', 'lease_commence_date', 'resale_price']
 
     # DATA COLLECTION
-    df1 = pd.read_csv("../data/resale-flat-prices-based-on-approval-date-1990-1999.csv", sep=",")
+    df1 = pd.read_csv("data/resale-flat-prices-based-on-approval-date-1990-1999.csv", sep=",")
     df1 = df1[filtered_columns]
 
-    df2 = pd.read_csv("../data/resale-flat-prices-based-on-approval-date-2000-feb-2012.csv", sep=",")
+    df2 = pd.read_csv("data/resale-flat-prices-based-on-approval-date-2000-feb-2012.csv", sep=",")
     df2 = df2[filtered_columns]
 
-    df3 = pd.read_csv("../data/resale-flat-prices-based-on-registration-date-from-mar-2012-to-dec-2014.csv", sep=",")
+    df3 = pd.read_csv("data/resale-flat-prices-based-on-registration-date-from-mar-2012-to-dec-2014.csv", sep=",")
     df3 = df3[filtered_columns]
 
-    df4 = pd.read_csv("../data/resale-flat-prices-based-on-registration-date-from-jan-2015-to-dec-2016.csv", sep=",")
+    df4 = pd.read_csv("data/resale-flat-prices-based-on-registration-date-from-jan-2015-to-dec-2016.csv", sep=",")
     df4 = df4[filtered_columns]
 
-    df5 = pd.read_csv("../data/resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv", sep=",")
+    df5 = pd.read_csv("data/resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv", sep=",")
     df5 = df5[filtered_columns]
 
     combined_data_count = df1.shape[0] + df2.shape[0] + df3.shape[0] + df4.shape[0] + df5.shape[0]
@@ -78,9 +71,11 @@ def data_collection_and_transformation():
     df_combine['month'] = df_combine['month'].astype(str).str[0:4]
     df_combine['floor_area_sqm'] = np.round(df_combine['floor_area_sqm'] * 10.7639, 2)
     df_combine = df_combine.rename(columns={'month': 'purchase_year',
-                                            'floor_area_sqm': 'floor_area_sqft'})
+                                            'floor_area_sqm': 'floor_area_sqft',
+                                            'lease_commence_date': 'lease_year'})
 
     df_combine['price_per_sqft'] = np.round(df_combine['resale_price'] / df_combine['floor_area_sqft'], 2)
+    df_combine['price_per_month'] = np.round(df_combine['resale_price'] / ((pd.to_numeric(df_combine['lease_year']) + 99 - pd.to_numeric(df_combine['purchase_year'])) * 12), 2)
 
     return df_combine
 
@@ -115,10 +110,11 @@ def mysql_save_csv_data_to_table(data):
                           'town VARCHAR(50),'
                           'flat_type VARCHAR(50),'
                           'floor_area_sqft FLOAT,'
-                          'lease_commence_date VARCHAR(10),'
+                          'lease_year VARCHAR(10),'
                           'resale_price FLOAT,'
                           'region VARCHAR(50),'
-                          'price_per_sqft FLOAT)')
+                          'price_per_sqft FLOAT,'
+                          'price_per_month FLOAT)')
 
     try:
         # CREATE NEW TABLE
@@ -127,15 +123,16 @@ def mysql_save_csv_data_to_table(data):
 
         # INSERT DATA TO NEW TABLE
         for index, row in data.iterrows():
-            query = "INSERT INTO resale_hdb (purchase_year, town, flat_type, floor_area_sqft, lease_commence_date, resale_price, region, price_per_sqft) VALUES ('" + \
+            query = "INSERT INTO resale_hdb (purchase_year, town, flat_type, floor_area_sqft, lease_year, resale_price, region, price_per_sqft, price_per_month) VALUES ('" + \
                     str(row['purchase_year']) + "', '" + \
                     row['town'] + "', '" + \
                     row['flat_type'] + "', '" + \
                     str(row['floor_area_sqft']) + "', '" + \
-                    str(row['lease_commence_date']) + "', '" + \
+                    str(row['lease_year']) + "', '" + \
                     str(row['resale_price']) + "', '" + \
                     row['region'] + "', '" + \
-                    str(row['price_per_sqft']) + "')"
+                    str(row['price_per_sqft']) + "', '" + \
+                    str(row['price_per_month']) + "')"
             cursor.execute(query)
         print("All Records Inserted Successfully!")
 
