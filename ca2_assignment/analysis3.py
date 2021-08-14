@@ -11,7 +11,8 @@ def calculate_parking_system_distribution(coupon_count, electronic_count):
     return coupon_percentage, electronic_percentage
 
 
-df = pd.read_csv('data/hdb-carpark-information.csv', sep=',')
+df = pd.read_csv('data/hdb-carpark-information.csv', sep=',',
+                 usecols=['x_coord', 'y_coord', 'car_park_type', 'type_of_parking_system'])
 
 data_coupon = df[df.type_of_parking_system.isin(['COUPON PARKING'])]
 data_electronic = df[df.type_of_parking_system.isin(['ELECTRONIC PARKING'])]
