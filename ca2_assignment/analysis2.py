@@ -1,24 +1,9 @@
-from pylab import text
-from datetime import datetime
-import os
+import sys
 import numpy as np
+import mysql.connector
+import pandas as pd
 import matplotlib.pyplot as plt
 import math
-
-
-def calculate_price_per_square_feet(resale_price, square_meter_area):
-    convert_sm_to_sqft = 10.7639
-    square_feet_area = np.round(square_meter_area * convert_sm_to_sqft)
-    per_sqft = np.round(resale_price / square_feet_area, 2)
-    return per_sqft
-
-
-def calculate_price_per_month(purchase_year, lease_year, resale_price):
-    lease = 99
-    lease_remaining_year = np.array(lease_year) + np.array(lease) - np.array(purchase_year)
-    lease_remaining_month = lease_remaining_year * 12
-    price_per_month = np.round(resale_price / lease_remaining_month, 2)
-    return price_per_month
 
 
 def calculate_histogram_range(min_value, max_value):
@@ -28,38 +13,31 @@ def calculate_histogram_range(min_value, max_value):
     return hist_range
 
 
-if os.path.exists('data/clean_data.csv'):
-    os.remove("data/clean_data.csv")
-csv_data1 = np.loadtxt("data/resale-flat-prices-based-on-registration-date-from-mar-2012-to-dec-2014.csv", skiprows=1, delimiter=",", dtype=str)
-csv_data2 = np.loadtxt("data/resale-flat-prices-based-on-registration-date-from-jan-2015-to-dec-2016.csv", skiprows=1, delimiter=",", dtype=str)
-csv_data3 = np.loadtxt("data/resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv", skiprows=1, delimiter=",", dtype=str)
+def retrieve_data_from_mysql():
+    user, pw, host, db = 'root', 'mysqladmin', 'localhost', 'ca2db'
+    connection = mysql.connector.connect(user=user, password=pw, host=host, database=db, use_pure=True)
+    cursor = connection.cursor()
 
-combined_data_count = len(csv_data1) + len(csv_data2) + len(csv_data3)
-print("Data Count (Before Concatenate): " + str(combined_data_count))
+    query_table = 'SELECT town, flat_type, price_per_sqft, price_per_month FROM resale_hdb WHERE purchase_year BETWEEN 2012 AND 2021'
 
-combined_data = np.concatenate((csv_data1, csv_data2, csv_data3), axis=0)
-del csv_data1, csv_data2, csv_data3
-print("Data Count (After Concatenate): {}".format(len(combined_data)))
+    try:
+        cursor.execute(query_table)
+        data = pd.DataFrame(cursor.fetchall(),
+                            columns=['town', 'flat_type', 'price_per_sqft', 'price_per_month'])
+        connection.commit()
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+        exit()
+    finally:
+        cursor.close()
+        connection.close()
 
-np.savetxt("data/clean_data.csv",
-           combined_data,
-           delimiter=",",
-           fmt=['%s', '%s', '%s', '%s', '%s', '%s'],
-           header='purchase_date, town, flat_type, floor_area_sqm, lease_commence_year, resale_price')
-del combined_data
+    print("Data Count (Saved Data): {}".format(data.shape[0]))
+    return data
 
-saved_data = np.genfromtxt("data/clean_data.csv",
-                           delimiter=",",
-                           dtype=[('purchase_date', 'U10'),
-                                  ('town', 'U30'),
-                                  ('flat_type', 'U30'),
-                                  ('floor_area_sqm', 'i4'),
-                                  ('lease_commence_year', 'U10'),
-                                  ('resale_price', 'i4')]
-                           )
-print("Saved Data counts: {}".format(len(saved_data)))
 
-town_list = np.unique(saved_data['town'])
+df = retrieve_data_from_mysql()
+town_list = np.array(df.town.drop_duplicates())
 town_count = 1
 for town in town_list:
     print("{}. {}".format(str(town_count), town), end="\n")
@@ -76,55 +54,29 @@ town_selected = town_list[town_index]
 # ======================
 # GRAPH: 1 (BOXPLOT)
 # ======================
-filtered_data_by_flat_type = saved_data[np.isin(saved_data['flat_type'], ['2 ROOM', '3 ROOM', '4 ROOM', '5 ROOM', 'EXECUTIVE'])]
-hdb_type = np.unique(filtered_data_by_flat_type['flat_type'])
+df_selected = df[df.town.isin([town_selected]) &
+                 df.flat_type.isin(['2 ROOM', '3 ROOM', '4 ROOM', '5 ROOM', 'EXECUTIVE'])]
+df_selected = df_selected[['flat_type', 'price_per_sqft']]
 
-filtered_data_by_flat_type['purchase_date'] = [datetime.strptime(date, '%Y-%m').year for date in filtered_data_by_flat_type['purchase_date']]
-years = np.array([int(i) for i in (np.unique(filtered_data_by_flat_type['purchase_date']))])
+df_selected.boxplot(by='flat_type', grid=False)
 
-x_label = []
-data_by_room_type = []
-for type in hdb_type:
-    filtered_data = filtered_data_by_flat_type[np.isin(filtered_data_by_flat_type['flat_type'], [type]) &
-                                               np.isin(filtered_data_by_flat_type['town'], [town_selected])]
-
-    has_elements = filtered_data.size > 0
-    if has_elements:
-        x_label.append("{} \n Total: {}".format(type, len(filtered_data)))
-        resale_price = filtered_data['resale_price']
-        square_meter_area = filtered_data['floor_area_sqm']
-        per_sqft = calculate_price_per_square_feet(resale_price, square_meter_area)
-        data_by_room_type.append(per_sqft)
-
-plt.figure(1)
-plt.subplot(111)
-plt.suptitle("HDB RESALE PRICE in {} \n between Year {} to {}".format(town_selected, years.min(), years.max()), fontsize=14, fontweight='bold')
+plt.suptitle("HDB RESALE PRICE in {} \n between Year 2012 to 2021".format(town_selected), fontsize=14, fontweight='bold')
 plt.title("Median Price per Square Feet (sqft) by Room Type")
 plt.xlabel("Room Type")
 plt.ylabel("Price per sqft (SGD)")
 
-boxplot_dictionary = plt.boxplot(np.array(data_by_room_type), labels=x_label)
-for line in boxplot_dictionary['medians']:
-    x, y = line.get_xydata()[1]
-    text(x, y, int(y), horizontalalignment='right')
-
 # ======================
 # GRAPH: 2 (HISTOGRAM)
 # ======================
-filtered_data_by_town = saved_data[np.isin(saved_data['town'], [town_selected])]
-filtered_data_by_town['purchase_date'] = [datetime.strptime(date, '%Y-%m').year for date in filtered_data_by_town['purchase_date']]
+df_graph2 = df[df.town.isin([town_selected])]
+df_graph2 = df_graph2[['price_per_month']]
+hist_range = calculate_histogram_range(df_graph2.min(), df_graph2.max())
 
-data_by_price_per_month = calculate_price_per_month([int(i) for i in filtered_data_by_town['purchase_date']],
-                                                    [int(i) for i in filtered_data_by_town['lease_commence_year']],
-                                                    filtered_data_by_town['resale_price'])
+df_graph2.hist(bins=hist_range, histtype='bar', ec='black')
 
-hist_range = calculate_histogram_range(data_by_price_per_month.min(), data_by_price_per_month.max())
-
-plt.figure(2)
-plt.subplot(111)
-plt.hist(data_by_price_per_month, bins=hist_range, histtype='bar', ec='black')
-plt.grid(axis='y', alpha=0.5)
-plt.suptitle("HDB RESALE PRICE in {} \n between Year {} to {}".format(town_selected, years.min(), years.max()), fontsize=14, fontweight='bold')
+axes = plt.gca()
+axes.xaxis.grid()
+plt.suptitle("HDB RESALE PRICE in {} \n between Year 2012 to 2021".format(town_selected), fontsize=14, fontweight='bold')
 plt.title("Price per month from Purchase Date until End of Lease (usually 99 years)")
 plt.xlabel("Price per month (SGD)")
 plt.ylabel("Total Transaction")

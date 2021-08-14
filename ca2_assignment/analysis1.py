@@ -4,26 +4,31 @@ import mysql.connector
 import pandas as pd
 import matplotlib.pyplot as plt
 
-user, pw, host, db = 'root', 'mysqladmin', 'localhost', 'ca2db'
-connection = mysql.connector.connect(user=user, password=pw, host=host, database=db, use_pure=True)
-cursor = connection.cursor()
 
-query_table = 'SELECT region, purchase_year, price_per_sqft FROM resale_hdb'
+def retrieve_data_from_mysql():
+    user, pw, host, db = 'root', 'mysqladmin', 'localhost', 'ca2db'
+    connection = mysql.connector.connect(user=user, password=pw, host=host, database=db, use_pure=True)
+    cursor = connection.cursor()
 
-try:
-    cursor.execute(query_table)
-    df = pd.DataFrame(cursor.fetchall(),
-                      columns=['region', 'purchase_year', 'price_per_sqft'])
-    connection.commit()
+    query_table = 'SELECT region, purchase_year, price_per_sqft FROM resale_hdb'
 
-except:
-    print("Unexpected error:", sys.exc_info()[0])
-    exit()
-finally:
-    cursor.close()
-    connection.close()
-print("Data Count (Saved Data): {}".format(df.shape[0]))
+    try:
+        cursor.execute(query_table)
+        data = pd.DataFrame(cursor.fetchall(),
+                            columns=['region', 'purchase_year', 'price_per_sqft'])
+        connection.commit()
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+        exit()
+    finally:
+        cursor.close()
+        connection.close()
 
+    print("Data Count (Saved Data): {}".format(data.shape[0]))
+    return data
+
+
+df = retrieve_data_from_mysql()
 df = df.groupby(['region', 'purchase_year'], as_index=False)['price_per_sqft'].mean()
 df = df.pivot(index='purchase_year', columns='region', values='price_per_sqft')
 
