@@ -147,6 +147,5 @@ def mysql_save_csv_data_to_table(data):
 
 
 df = data_collection_and_transformation()
-print(df.shape)
 mysql_create_database()
 mysql_save_csv_data_to_table(df)
