@@ -1,7 +1,13 @@
+from ca2_assignment import mysql_config as config
 import sys
 import mysql.connector
+import sqlalchemy
 import numpy as np
 import pandas as pd
+
+
+# DATABASE: MYSQL CONNECTION
+user, pw, host, db, sys_db = config.user, config.pw, config.host, config.db, config.sys_db
 
 
 def region_mapper(town):
@@ -81,8 +87,7 @@ def data_collection_and_transformation():
 
 
 def mysql_create_database():
-    user, pw, host, db = 'root', 'mysqladmin', 'localhost', 'sys'
-    connection = mysql.connector.connect(user=user, password=pw, host=host, database=db, use_pure=True)
+    connection = mysql.connector.connect(user=user, password=pw, host=host, database=sys_db, use_pure=True)
     cursor = connection.cursor()
 
     try:
@@ -99,8 +104,7 @@ def mysql_create_database():
         connection.close()
 
 
-def mysql_save_csv_data_to_table(data):
-    user, pw, host, db = 'root', 'mysqladmin', 'localhost', 'ca2db'
+def mysql_create_table():
     connection = mysql.connector.connect(user=user, password=pw, host=host, database=db, use_pure=True)
     cursor = connection.cursor()
 
@@ -117,24 +121,8 @@ def mysql_save_csv_data_to_table(data):
                           'price_per_month FLOAT)')
 
     try:
-        # CREATE NEW TABLE
         cursor.execute(query_create_table)
         print("Tables Created Successfully!")
-
-        # INSERT DATA TO NEW TABLE
-        for index, row in data.iterrows():
-            query = "INSERT INTO resale_hdb (purchase_year, town, flat_type, floor_area_sqft, lease_year, resale_price, region, price_per_sqft, price_per_month) VALUES ('" + \
-                    str(row['purchase_year']) + "', '" + \
-                    row['town'] + "', '" + \
-                    row['flat_type'] + "', '" + \
-                    str(row['floor_area_sqft']) + "', '" + \
-                    str(row['lease_year']) + "', '" + \
-                    str(row['resale_price']) + "', '" + \
-                    row['region'] + "', '" + \
-                    str(row['price_per_sqft']) + "', '" + \
-                    str(row['price_per_month']) + "')"
-            cursor.execute(query)
-        print("All Records Inserted Successfully!")
 
         connection.commit()
 
@@ -146,6 +134,23 @@ def mysql_save_csv_data_to_table(data):
         connection.close()
 
 
+def mysql_insert_data_to_table(data):
+    engine = sqlalchemy.create_engine('mysql+mysqlconnector://{user}:{pw}@{host}/{db}'
+                                      .format(user=user, pw=pw, host=host, db=db))
+    connection = engine.connect()
+
+    try:
+        data.to_sql(con=engine, name='resale_hdb', if_exists='replace', chunksize=25000)
+        print("All Records Inserted Successfully!")
+
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+        exit()
+    finally:
+        connection.close()
+
+
 df = data_collection_and_transformation()
 mysql_create_database()
-mysql_save_csv_data_to_table(df)
+mysql_create_table()
+mysql_insert_data_to_table(df)

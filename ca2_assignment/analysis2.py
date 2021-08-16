@@ -1,3 +1,4 @@
+from ca2_assignment import mysql_config as config
 import sys
 import numpy as np
 import mysql.connector
@@ -5,6 +6,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import math
+
+# DATABASE: MYSQL CONNECTION
+user, pw, host, db = config.user, config.pw, config.host, config.db
 
 
 def calculate_histogram_range(min_value, max_value):
@@ -15,7 +19,6 @@ def calculate_histogram_range(min_value, max_value):
 
 
 def retrieve_data_from_mysql():
-    user, pw, host, db = 'root', 'mysqladmin', 'localhost', 'ca2db'
     connection = mysql.connector.connect(user=user, password=pw, host=host, database=db, use_pure=True)
     cursor = connection.cursor()
 
