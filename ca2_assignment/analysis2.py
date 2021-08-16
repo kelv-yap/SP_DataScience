@@ -3,6 +3,7 @@ import numpy as np
 import mysql.connector
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 import math
 
 
@@ -58,7 +59,12 @@ df_selected = df[df.town.isin([town_selected]) &
                  df.flat_type.isin(['2 ROOM', '3 ROOM', '4 ROOM', '5 ROOM', 'EXECUTIVE'])]
 df_selected = df_selected[['flat_type', 'price_per_sqft']]
 
-df_selected.boxplot(by='flat_type', grid=False)
+boxplot_dict = sns.boxplot(data=df_selected, x='flat_type', y='price_per_sqft')
+
+medians = df_selected.groupby(['flat_type'])['price_per_sqft'].median().astype(int)
+vertical_offset = df_selected['price_per_sqft'].median() * 0.01
+for xtick in boxplot_dict.get_xticks():
+    boxplot_dict.text(xtick, medians[xtick] + vertical_offset, medians[xtick], horizontalalignment='center', color='w')
 
 plt.suptitle("HDB RESALE PRICE in {} \n between Year 2012 to 2021".format(town_selected), fontsize=14, fontweight='bold')
 plt.title("Median Price per Square Feet (sqft) by Room Type")
