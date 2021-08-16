@@ -5,7 +5,6 @@ import sqlalchemy
 import numpy as np
 import pandas as pd
 
-
 # DATABASE: MYSQL CONNECTION
 user, pw, host, db, sys_db = config.user, config.pw, config.host, config.db, config.sys_db
 
@@ -44,9 +43,9 @@ def region_mapper(town):
 
 
 def data_collection_and_transformation():
+    # DATA COLLECTION
     filtered_columns = ['month', 'town', 'flat_type', 'floor_area_sqm', 'lease_commence_date', 'resale_price']
 
-    # DATA COLLECTION
     df1 = pd.read_csv("data/resale-flat-prices-based-on-approval-date-1990-1999.csv", sep=",")
     df1 = df1[filtered_columns]
 
